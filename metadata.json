@@ -1,0 +1,6 @@
+{
+  "name": "Mock Test Engine",
+  "description": "Serverless, text file-driven mock test simulator with AI diagnostics and detailed pace analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
