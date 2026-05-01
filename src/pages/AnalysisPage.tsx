@@ -6,10 +6,20 @@ import { Sparkles, X, ChevronDown, ChevronUp } from "lucide-react";
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 export default function AnalysisPage() {
   const store = useTestStore();
   const navigate = useNavigate();
+
+  const [filter, setFilter] = useState({
+    correct: true,
+    incorrect: true,
+    unattempted: true
+  });
 
   useEffect(() => {
     if (!store.test) navigate("/");
@@ -26,7 +36,7 @@ export default function AnalysisPage() {
   let incorrectCount = 0;
   let unattemptedCount = 0;
 
-  const questionStats = test.questions.map((q) => {
+  const questionStats = test.questions.map((q, i) => {
     const userAnswer = answers[q.id];
     let isCorrect = false;
     let isAttempted = !!userAnswer;
@@ -51,7 +61,8 @@ export default function AnalysisPage() {
       isCorrect,
       isAttempted,
       timeSpent: timeSpent[q.id] || 0,
-      status: status[q.id] || "NOT_VISITED"
+      status: status[q.id] || "NOT_VISITED",
+      originalIndex: i
     };
   });
 
@@ -60,31 +71,31 @@ export default function AnalysisPage() {
   const isPassed = totalScore >= passMark;
 
   return (
-    <div className="min-h-screen bg-[var(--theme-bg)] flex flex-col p-6 gap-6 relative">
+    <div className="min-h-screen bg-[var(--theme-bg)] flex flex-col p-3 md:p-6 gap-4 md:gap-6 relative">
       
       {/* Navbar + Hero */}
-      <header className="flex justify-between items-end border-b border-[var(--theme-muted)] pb-4 relative z-10 w-full max-w-7xl mx-auto mt-6">
-        <div className="flex flex-col">
-          <span className="terminal-font text-xs opacity-50 uppercase tracking-widest flex items-center gap-4">
-             Analysis Mode // {test.metadata.title}
-             <button onClick={() => { store.reset(); navigate("/"); }} className="px-2 py-0.5 border border-current hover:bg-[var(--theme-primary)] hover:text-[var(--theme-bg)] transition-colors">EXIT</button>
+      <header className="flex flex-col md:flex-row justify-between md:items-end border-b border-[var(--theme-muted)] pb-4 relative z-10 w-full max-w-7xl mx-auto mt-6 gap-6 md:gap-0">
+        <div className="flex flex-col min-w-0 flex-1 pr-6">
+          <span className="terminal-font text-xs opacity-50 uppercase tracking-widest flex items-center gap-4 min-w-0">
+             <span className="truncate">Analysis Mode // {test.metadata.title}</span>
+             <button onClick={() => { store.reset(); navigate("/"); }} className="px-2 py-0.5 border border-current hover:bg-[var(--theme-primary)] hover:text-[var(--theme-bg)] transition-colors shrink-0">EXIT</button>
           </span>
-          <h1 className="text-4xl font-semibold tracking-tighter uppercase mt-1">Post-Test Diagnostics</h1>
+          <h1 className="text-2xl md:text-4xl font-semibold tracking-tighter uppercase mt-1 truncate">Post-Test Diagnostics</h1>
         </div>
-        <div className="flex gap-8 text-right">
+        <div className="flex justify-between md:justify-end gap-6 md:gap-8 md:text-right shrink-0 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
           <div className="flex flex-col">
             <span className="text-xs uppercase opacity-50 font-sans">Final Score</span>
-            <span className={cn("text-3xl font-bold", totalScore >= passMark ? "glow-green" : "glow-red")}>
-              {totalScore}<span className="text-lg opacity-50">/{maxMarks}</span>
+            <span className={cn("text-2xl md:text-3xl font-bold", totalScore >= passMark ? "glow-green" : "glow-red")}>
+              {totalScore}<span className="text-sm md:text-lg opacity-50">/{maxMarks}</span>
             </span>
           </div>
           <div className="flex flex-col">
             <span className="text-xs uppercase opacity-50 font-sans">Accuracy</span>
-            <span className="text-3xl font-bold tracking-tighter">{accuracy.toFixed(1)}%</span>
+            <span className="text-2xl md:text-3xl font-bold tracking-tighter">{accuracy.toFixed(1)}%</span>
           </div>
           <div className="flex flex-col">
             <span className="text-xs uppercase opacity-50 font-sans">Attempted</span>
-            <span className="text-3xl font-bold tracking-tighter">{correctCount + incorrectCount}/{test.questions.length}</span>
+            <span className="text-2xl md:text-3xl font-bold tracking-tighter">{correctCount + incorrectCount}/{test.questions.length}</span>
           </div>
         </div>
       </header>
@@ -136,11 +147,32 @@ export default function AnalysisPage() {
               </div>
 
               {/* Granular Review */}
-              <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-6 border border-black/10 dark:border-white/10 flex-1">
-                 <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 font-sans mb-4">Terminal Review</h2>
+              <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-3 md:p-6 border border-black/10 dark:border-white/10 flex-1">
+                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                     <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 font-sans">Terminal Review</h2>
+                     <div className="flex flex-wrap gap-4 text-xs font-mono uppercase tracking-widest">
+                          <label className="flex items-center gap-2 cursor-pointer hover:opacity-100 transition-opacity">
+                              <input type="checkbox" checked={filter.correct} onChange={(e) => setFilter(f => ({ ...f, correct: e.target.checked }))} className="accent-[var(--color-success)] w-4 h-4 cursor-pointer" /> 
+                              <span className={cn(filter.correct ? "" : "opacity-50")}>Correct</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer hover:opacity-100 transition-opacity">
+                              <input type="checkbox" checked={filter.incorrect} onChange={(e) => setFilter(f => ({ ...f, incorrect: e.target.checked }))} className="accent-[var(--color-danger)] w-4 h-4 cursor-pointer" /> 
+                              <span className={cn(filter.incorrect ? "" : "opacity-50")}>Incorrect</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer hover:opacity-100 transition-opacity">
+                              <input type="checkbox" checked={filter.unattempted} onChange={(e) => setFilter(f => ({ ...f, unattempted: e.target.checked }))} className="accent-[var(--theme-primary)] w-4 h-4 cursor-pointer" /> 
+                              <span className={cn(filter.unattempted ? "" : "opacity-50")}>Unattempted</span>
+                          </label>
+                     </div>
+                 </div>
                  <div className="space-y-6">
-                     {questionStats.map((q, i) => (
-                         <ReviewItem key={q.id} q={q} index={i} test={test} />
+                     {questionStats.filter(q => {
+                         if (q.isAttempted && q.isCorrect) return filter.correct;
+                         if (q.isAttempted && !q.isCorrect) return filter.incorrect;
+                         if (!q.isAttempted) return filter.unattempted;
+                         return true;
+                     }).map((q) => (
+                         <ReviewItem key={q.id} q={q} index={q.originalIndex} test={test} />
                      ))}
                  </div>
               </div>
@@ -240,13 +272,13 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
     }
 
     return (
-        <div id={`q-review-${q.id}`} className="border border-[var(--theme-primary)]/10 p-6 md:p-10 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02]">
-            <div className="flex items-center justify-between mb-6">
-                <div className="font-mono text-sm opacity-60">Q {index + 1}</div>
-                <div className="flex gap-4">
-                    <span className="font-mono text-xs opacity-50 uppercase tracking-widest">{q.timeSpent}s</span>
+        <div id={`q-review-${q.id}`} className="border border-[var(--theme-primary)]/10 p-3 md:p-8 rounded-xl md:rounded-2xl bg-black/[0.02] dark:bg-white/[0.02]">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+                <div className="font-mono text-xs md:text-sm opacity-60">Q {index + 1}</div>
+                <div className="flex items-center gap-2 md:gap-4">
+                    <span className="font-mono text-[10px] md:text-xs opacity-50 uppercase tracking-widest">{q.timeSpent}s</span>
                     <span className={cn(
-                        "font-mono text-xs uppercase tracking-widest px-2 py-1",
+                        "font-mono text-[10px] md:text-xs uppercase tracking-widest px-2 py-1",
                         q.isAttempted 
                             ? (q.isCorrect ? "bg-[var(--color-success)]/10 text-[var(--color-success)]" : "bg-[var(--color-danger)]/10 text-[var(--color-danger)]")
                             : "bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]"
@@ -256,8 +288,10 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
                 </div>
             </div>
 
-            <div className="prose prose-sm dark:prose-invert font-sans max-w-none mb-8">
-                {q.text.split("\\n").map((line: string, idx: number) => <p key={idx}>{line}</p>)}
+            <div className="prose prose-sm dark:prose-invert font-sans max-w-none mb-4 md:mb-8 text-[11px] md:text-sm leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
+                    {q.text}
+                </ReactMarkdown>
             </div>
 
             <div className="space-y-3 mb-8">
@@ -279,10 +313,16 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
                     }
 
                     return (
-                        <div key={idx} className={cn("px-4 py-3 border rounded-xl font-sans text-sm flex items-center justify-between", statusClasses)}>
-                            <span>{opt}</span>
-                            {isCorrectChoice && <span className="text-[var(--color-success)] font-mono text-xs ml-4">✓ CORRECT</span>}
-                            {isUserChoice && !q.isCorrect && <span className="text-[var(--color-danger)] font-mono text-xs ml-4">✗ YOU</span>}
+                        <div key={idx} className={cn("px-2 py-1.5 md:px-4 md:py-3 border rounded-xl font-sans text-[11px] md:text-sm flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-0", statusClasses)}>
+                            <div className="[&>p]:m-0">
+                                <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
+                                    {opt}
+                                </ReactMarkdown>
+                            </div>
+                            <div className="shrink-0 flex items-center justify-end">
+                                {isCorrectChoice && <span className="text-[var(--color-success)] font-mono text-[10px] md:text-xs">✓ CORRECT</span>}
+                                {isUserChoice && !q.isCorrect && <span className="text-[var(--color-danger)] font-mono text-[10px] md:text-xs ml-4">✗ YOU</span>}
+                            </div>
                         </div>
                     );
                 })}
@@ -292,7 +332,7 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
                 <div className="bg-[var(--theme-primary)]/5 p-6 rounded-xl mb-6 border border-[var(--theme-primary)]/10">
                     <div className="font-mono text-[10px] uppercase tracking-widest opacity-40 mb-3">Official Explanation</div>
                     <div className="prose prose-sm dark:prose-invert max-w-none font-sans">
-                        <ReactMarkdown>{q.explanation}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{q.explanation}</ReactMarkdown>
                     </div>
                 </div>
             )}
@@ -317,7 +357,7 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
                         className="max-h-[300px] overflow-y-auto pr-4 prose prose-invert prose-sm terminal-font text-xs space-y-4 opacity-80"
                     >
                         {aiResponse ? (
-                             <ReactMarkdown>{aiResponse}</ReactMarkdown>
+                             <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{aiResponse}</ReactMarkdown>
                         ) : (
                             <span className="opacity-50 animate-pulse text-[var(--theme-primary)]">Initializing connection to AI matrix...</span>
                         )}

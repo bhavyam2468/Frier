@@ -103,6 +103,7 @@ FORMAT SPECIFICATION:
    - Part 3: The options (one per line). If the question is numerical/subjective, write [NO_OPTIONS].
    - Part 4: The correct answer (e.g., A, B, C, D, or the numerical value).
    - Part 5: The explanation, wrapped in [EXPLANATION] and [/EXPLANATION] tags.
+5. Use LaTeX formatting for all mathematical equations, formulas, and symbols. Wrap inline math with \`$\` and block math with \`$$\`.
 
 YOUR FINAL RESPONSE TO ME:
 After generating the mock test in this format, you must:
