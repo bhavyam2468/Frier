@@ -140,12 +140,20 @@ export default function TestPage() {
                  <div className="whitespace-pre-wrap">{store.test.instructions || "No specific instructions provided for this test."}</div>
              </div>
 
-             <button 
-                onClick={() => store.startTest()}
-                className="w-full py-4 bg-[var(--theme-primary)] text-[var(--theme-bg)] font-bold uppercase tracking-widest text-sm rounded-xl hover:opacity-90 transition-opacity active:scale-[0.98] shadow-xl shadow-[var(--theme-primary)]/20 cursor-pointer"
-             >
-                Start Test Sequence
-             </button>
+             <div className="flex flex-col gap-4">
+                 <button 
+                    onClick={() => store.startTest()}
+                    className="w-full py-4 bg-[var(--theme-primary)] text-[var(--theme-bg)] font-bold uppercase tracking-widest text-sm rounded-xl hover:opacity-90 transition-opacity active:scale-[0.98] shadow-xl shadow-[var(--theme-primary)]/20 cursor-pointer"
+                 >
+                    Start Test Sequence
+                 </button>
+                 <button 
+                    onClick={() => navigate("/practice")}
+                    className="w-full py-4 bg-transparent border border-[var(--theme-primary)] text-[var(--theme-primary)] font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-[var(--theme-primary)]/10 transition-colors active:scale-[0.98] cursor-pointer"
+                 >
+                    Skip to Practice Mode
+                 </button>
+             </div>
         </div>
       </div>
     );
