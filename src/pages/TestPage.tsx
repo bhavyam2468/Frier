@@ -137,7 +137,7 @@ export default function TestPage() {
 
              <div className="prose prose-sm dark:prose-invert font-sans mb-12 opacity-80 max-w-none">
                  <p className="font-bold">Instructions:</p>
-                 <div className="whitespace-pre-wrap">{store.test.metadata.instructions || "No specific instructions provided for this test."}</div>
+                 <div className="whitespace-pre-wrap">{store.test.instructions || "No specific instructions provided for this test."}</div>
              </div>
 
              <button 
@@ -471,8 +471,10 @@ export default function TestPage() {
                 </button>
                 <div className="terminal-font text-xs uppercase tracking-widest opacity-50 mb-2">Test Info</div>
                 <h2 className="text-2xl font-bold tracking-tight mb-6">Instructions</h2>
-                <div className="overflow-y-auto flex-1 font-sans prose prose-sm dark:prose-invert opacity-80 whitespace-pre-wrap pr-4">
-                    {store.test.metadata.instructions || "No specific instructions provided for this test."}
+                <div className="overflow-y-auto flex-1 font-sans prose prose-sm dark:prose-invert opacity-80 pr-4">
+                    <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
+                        {processLatex(store.test.instructions) || "No specific instructions provided for this test."}
+                    </ReactMarkdown>
                 </div>
                 <div className="mt-8 pt-4 border-t border-[var(--theme-primary)]/10 shrink-0 flex justify-end">
                     <button 

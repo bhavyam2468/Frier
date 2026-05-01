@@ -3,7 +3,7 @@ import { useTestStore } from "../store/testStore";
 import { useNavigate } from "react-router-dom";
 import { cn, processLatex } from "../lib/utils";
 import { Sparkles, X, ChevronDown, ChevronUp } from "lucide-react";
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine, PieChart, Pie, Cell } from "recharts";
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
@@ -70,8 +70,14 @@ export default function AnalysisPage() {
   const accuracy = correctCount + incorrectCount > 0 ? (correctCount / (correctCount + incorrectCount)) * 100 : 0;
   const isPassed = totalScore >= passMark;
 
+  const pieData = [
+    { name: 'Correct', value: correctCount, color: 'var(--color-success)' },
+    { name: 'Incorrect', value: incorrectCount, color: 'var(--color-danger)' },
+    { name: 'Skipped', value: unattemptedCount, color: 'var(--theme-primary)' }
+  ].filter(d => d.value > 0);
+
   return (
-    <div className="min-h-screen bg-[var(--theme-bg)] flex flex-col p-3 md:p-6 gap-4 md:gap-6 relative">
+    <div className="h-screen max-h-screen bg-[var(--theme-bg)] flex flex-col p-3 md:p-6 gap-4 md:gap-6 relative overflow-hidden">
       
       {/* Navbar + Hero */}
       <header className="flex flex-col md:flex-row justify-between md:items-end border-b border-[var(--theme-muted)] pb-4 relative z-10 w-full max-w-7xl mx-auto mt-6 gap-6 md:gap-0">
@@ -100,9 +106,9 @@ export default function AnalysisPage() {
         </div>
       </header>
 
-      <main className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10 w-full max-w-7xl mx-auto pb-24">
+      <main className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10 w-full max-w-7xl mx-auto pb-6">
           
-          <section className="md:col-span-7 flex flex-col gap-6">
+          <section className="md:col-span-7 flex flex-col gap-6 overflow-hidden min-h-0">
               {/* Scatterplot */}
               <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-6 border border-black/10 dark:border-white/10">
                   <div className="flex justify-between items-center mb-4">
@@ -147,25 +153,25 @@ export default function AnalysisPage() {
               </div>
 
               {/* Granular Review */}
-              <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-3 md:p-6 border border-black/10 dark:border-white/10 flex-1">
-                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+              <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-3 md:p-6 border border-black/10 dark:border-white/10 flex-1 flex flex-col min-h-0">
+                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 shrink-0">
                      <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 font-sans">Terminal Review</h2>
                      <div className="flex flex-wrap gap-4 text-xs font-mono uppercase tracking-widest">
                           <label className="flex items-center gap-2 cursor-pointer hover:opacity-100 transition-opacity">
-                              <input type="checkbox" checked={filter.correct} onChange={(e) => setFilter(f => ({ ...f, correct: e.target.checked }))} className="accent-[var(--color-success)] w-4 h-4 cursor-pointer" /> 
+                              <input type="checkbox" checked={filter.correct} onChange={(e) => setFilter(f => ({ ...f, correct: e.target.checked }))} className="w-4 h-4 cursor-pointer accent-white" /> 
                               <span className={cn(filter.correct ? "" : "opacity-50")}>Correct</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer hover:opacity-100 transition-opacity">
-                              <input type="checkbox" checked={filter.incorrect} onChange={(e) => setFilter(f => ({ ...f, incorrect: e.target.checked }))} className="accent-[var(--color-danger)] w-4 h-4 cursor-pointer" /> 
+                              <input type="checkbox" checked={filter.incorrect} onChange={(e) => setFilter(f => ({ ...f, incorrect: e.target.checked }))} className="w-4 h-4 cursor-pointer accent-white" /> 
                               <span className={cn(filter.incorrect ? "" : "opacity-50")}>Incorrect</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer hover:opacity-100 transition-opacity">
-                              <input type="checkbox" checked={filter.unattempted} onChange={(e) => setFilter(f => ({ ...f, unattempted: e.target.checked }))} className="accent-[var(--theme-primary)] w-4 h-4 cursor-pointer" /> 
+                              <input type="checkbox" checked={filter.unattempted} onChange={(e) => setFilter(f => ({ ...f, unattempted: e.target.checked }))} className="w-4 h-4 cursor-pointer accent-white" /> 
                               <span className={cn(filter.unattempted ? "" : "opacity-50")}>Unattempted</span>
                           </label>
                      </div>
                  </div>
-                 <div className="space-y-6">
+                 <div className="space-y-6 flex-1 overflow-y-auto pr-2 hide-scrollbar">
                      {questionStats.filter(q => {
                          if (q.isAttempted && q.isCorrect) return filter.correct;
                          if (q.isAttempted && !q.isCorrect) return filter.incorrect;
@@ -212,6 +218,45 @@ export default function AnalysisPage() {
                       <span>Correct [{correctCount}]</span>
                       <span>Wrong [{incorrectCount}]</span>
                       <span>Skipped [{unattemptedCount}]</span>
+                  </div>
+              </div>
+
+              {/* Composition Pie Chart */}
+              <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-6 border border-black/10 dark:border-white/10">
+                  <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-4 font-sans">Distribution Matrix</h2>
+                  <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                              <Pie
+                                  data={pieData}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={60}
+                                  outerRadius={80}
+                                  paddingAngle={5}
+                                  dataKey="value"
+                                  stroke="none"
+                              >
+                                  {pieData.map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={entry.color} />
+                                  ))}
+                              </Pie>
+                              <RechartsTooltip 
+                                  content={({ payload }) => {
+                                      if (payload && payload.length) {
+                                          const data = payload[0].payload;
+                                          return (
+                                              <div className="bg-[var(--theme-bg)] border border-[var(--theme-muted)] px-3 py-2 text-xs terminal-font shadow-2xl">
+                                                  <div className="uppercase tracking-widest" style={{ color: data.color }}>{data.name}</div>
+                                                  <div className="font-bold text-lg mt-1">{data.value}</div>
+                                              </div>
+                                          );
+                                      }
+                                      return null;
+                                  }}
+                              />
+                          </PieChart>
+                      </ResponsiveContainer>
                   </div>
               </div>
           </section>
