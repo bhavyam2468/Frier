@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useTestStore } from "../store/testStore";
 import { useNavigate } from "react-router-dom";
-import { cn } from "../lib/utils";
+import { cn, processLatex } from "../lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
@@ -230,7 +230,7 @@ export default function TestPage() {
 
             <div className="prose prose-sm md:prose-lg dark:prose-invert max-w-4xl font-sans mb-6 md:mb-12">
                 <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                    {currentQ.text}
+                    {processLatex(currentQ.text)}
                 </ReactMarkdown>
             </div>
 
@@ -263,7 +263,7 @@ export default function TestPage() {
                                 </div>
                                 <span className={cn("font-sans [&>p]:m-0", isSelected ? "font-semibold" : "")}>
                                     <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                                        {opt}
+                                        {processLatex(opt)}
                                     </ReactMarkdown>
                                 </span>
                             </button>

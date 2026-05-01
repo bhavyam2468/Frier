@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useTestStore } from "../store/testStore";
 import { useNavigate } from "react-router-dom";
-import { cn } from "../lib/utils";
+import { cn, processLatex } from "../lib/utils";
 import { Sparkles, X, ChevronDown, ChevronUp } from "lucide-react";
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { GoogleGenAI } from "@google/genai";
@@ -290,7 +290,7 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
 
             <div className="prose prose-sm dark:prose-invert font-sans max-w-none mb-4 md:mb-8 text-[11px] md:text-sm leading-relaxed">
                 <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                    {q.text}
+                    {processLatex(q.text)}
                 </ReactMarkdown>
             </div>
 
@@ -316,7 +316,7 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
                         <div key={idx} className={cn("px-2 py-1.5 md:px-4 md:py-3 border rounded-xl font-sans text-[11px] md:text-sm flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-0", statusClasses)}>
                             <div className="[&>p]:m-0">
                                 <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                                    {opt}
+                                    {processLatex(opt)}
                                 </ReactMarkdown>
                             </div>
                             <div className="shrink-0 flex items-center justify-end">
@@ -332,7 +332,7 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
                 <div className="bg-[var(--theme-primary)]/5 p-6 rounded-xl mb-6 border border-[var(--theme-primary)]/10">
                     <div className="font-mono text-[10px] uppercase tracking-widest opacity-40 mb-3">Official Explanation</div>
                     <div className="prose prose-sm dark:prose-invert max-w-none font-sans">
-                        <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{q.explanation}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{processLatex(q.explanation)}</ReactMarkdown>
                     </div>
                 </div>
             )}
@@ -357,7 +357,7 @@ Please diagnose exactly what mathematical or logical trap they fell into to get 
                         className="max-h-[300px] overflow-y-auto pr-4 prose prose-invert prose-sm terminal-font text-xs space-y-4 opacity-80"
                     >
                         {aiResponse ? (
-                             <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{aiResponse}</ReactMarkdown>
+                             <ReactMarkdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{processLatex(aiResponse)}</ReactMarkdown>
                         ) : (
                             <span className="opacity-50 animate-pulse text-[var(--theme-primary)]">Initializing connection to AI matrix...</span>
                         )}
