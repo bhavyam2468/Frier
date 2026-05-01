@@ -13,10 +13,7 @@ export default function TestPage() {
       navigate("/");
       return;
     }
-    if (!store.isTestActive) {
-      store.startTest();
-    }
-  }, [store.test, store.isTestActive, navigate, store]);
+  }, [store.test, navigate]);
 
   // Keyboard Shortcuts & Timer
   useEffect(() => {
@@ -105,6 +102,48 @@ export default function TestPage() {
   }
 
   if (!store.test) return null;
+
+  if (!store.isTestActive) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--theme-bg)] p-6">
+        <div className="max-w-2xl w-full border border-[var(--theme-primary)]/20 p-8 md:p-12 rounded-2xl bg-black/5 dark:bg-white/5 font-sans relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--theme-primary)] opacity-5 blur-[100px] pointer-events-none" />
+             
+             <div className="terminal-font text-xs uppercase tracking-widest opacity-50 mb-2">Pre-Flight Check</div>
+             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-8">
+               {store.test.metadata.title}
+             </h1>
+
+             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+                <div className="flex flex-col gap-1 border-l-2 border-[var(--theme-primary)] pl-4">
+                   <span className="text-[10px] uppercase font-bold opacity-50 terminal-font tracking-widest">Questions</span>
+                   <span className="text-2xl font-bold">{store.test.questions.length}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-l-2 border-[var(--theme-primary)] pl-4">
+                   <span className="text-[10px] uppercase font-bold opacity-50 terminal-font tracking-widest">Time Alotted</span>
+                   <span className="text-2xl font-bold">{store.test.metadata.time}m</span>
+                </div>
+                <div className="flex flex-col gap-1 border-l-2 border-[var(--theme-primary)] pl-4">
+                   <span className="text-[10px] uppercase font-bold opacity-50 terminal-font tracking-widest">Max Marks</span>
+                   <span className="text-2xl font-bold">{store.test.metadata.maxMarks}</span>
+                </div>
+             </div>
+
+             <div className="prose prose-sm dark:prose-invert font-sans mb-12 opacity-80 max-w-none">
+                 <p className="font-bold">Instructions:</p>
+                 <div className="whitespace-pre-wrap">{store.test.metadata.instructions || "No specific instructions provided for this test."}</div>
+             </div>
+
+             <button 
+                onClick={() => store.startTest()}
+                className="w-full py-4 bg-[var(--theme-primary)] text-[var(--theme-bg)] font-bold uppercase tracking-widest text-sm rounded-xl hover:opacity-90 transition-opacity active:scale-[0.98] shadow-xl shadow-[var(--theme-primary)]/20 cursor-pointer"
+             >
+                Start Test Sequence
+             </button>
+        </div>
+      </div>
+    );
+  }
 
   const currentQ = store.test.questions[store.currentQuestionIndex];
   const formatTime = (sec: number) => {

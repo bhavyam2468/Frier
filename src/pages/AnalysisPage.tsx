@@ -65,7 +65,10 @@ export default function AnalysisPage() {
       {/* Navbar + Hero */}
       <header className="flex justify-between items-end border-b border-[var(--theme-muted)] pb-4 relative z-10 w-full max-w-7xl mx-auto mt-6">
         <div className="flex flex-col">
-          <span className="terminal-font text-xs opacity-50 uppercase tracking-widest">Analysis Mode // {test.metadata.title}</span>
+          <span className="terminal-font text-xs opacity-50 uppercase tracking-widest flex items-center gap-4">
+             Analysis Mode // {test.metadata.title}
+             <button onClick={() => { store.reset(); navigate("/"); }} className="px-2 py-0.5 border border-current hover:bg-[var(--theme-primary)] hover:text-[var(--theme-bg)] transition-colors">EXIT</button>
+          </span>
           <h1 className="text-4xl font-semibold tracking-tighter uppercase mt-1">Post-Test Diagnostics</h1>
         </div>
         <div className="flex gap-8 text-right">
